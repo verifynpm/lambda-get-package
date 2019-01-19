@@ -11,7 +11,7 @@ script:
   - npm run zip
 deploy:
   on:
-    branch: deploy
+    tags: prod-*
   provider: lambda
   function_name: verifynpm-get-package
   zip: ./compiled/bundle.zip
