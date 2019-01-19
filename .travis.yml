@@ -15,7 +15,8 @@ script:
   - npm run zip
 deploy:
   on:
-    tags: prod-*
+    tags: true
+    condition: $TRAVIS_TAG =~ ^prod-.+$
   provider: lambda
   function_name: verifynpm-get-package
   zip: ./compiled/bundle.zip
