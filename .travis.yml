@@ -14,6 +14,7 @@ deploy:
     branch: deploy
   provider: lambda
   function_name: verifynpm-get-package
+  zip: ./compiled/bundle.zip
   region: us-east-2
   role: arn:aws:iam::541605000355:role/lambda_code_deploy
   runtime: nodejs8.10
