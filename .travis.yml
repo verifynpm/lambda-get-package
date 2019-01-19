@@ -3,6 +3,9 @@ node_js:
   - '8.10'
 before_install:
   - if [[ `npm -v` != 6* ]]; then npm i -g npm@6; fi
+  - node --version
+  - npm --version
+  - nvm --version
 install:
   - npm ci
 test:
