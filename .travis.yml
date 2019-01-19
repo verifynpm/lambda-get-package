@@ -9,3 +9,13 @@ test:
   - npm t
 script:
   - npm run zip
+deploy:
+  provider: lambda
+  function_name: verifynpm-get-package
+  region: us-east-2
+  role: arn:aws:iam::541605000355:role/lambda_code_deploy
+  runtime: nodejs8.10
+  handler_name: handler
+  access_key_id: AKIAIS2OW5SWZSR7TNOA
+  secret_access_key:
+    secure: AJEX8wjl7shs/Cg+DiVsMIO39OxRx1BVl+s9USWnN4pGGxo1EITLFsVc4Rblktc8M3ih1oRSx/mB7ZFxuD6FVXMtdbC457bVX4XguFzr49TvbKarZCsvvuAAy+6r/HwilyG4zvzJsCAGUCvd0u5Diit+5hZzCBFrExqo/EWoHeEqwBLYOoBPmqo5fMIv47EKTr9+K5zAHAq7Zflhss0PWX0e/Jjf5oVLgzzYHwmz/5lLuQk8q4GjDaGNWJ4zjkIXqA8FFt9Ws15jgvDTP23kj/nPXYbQ+TXHwMLlaIrimkI/tNSi1jCFfXZi73BeT9e/VbfgnWL2MwrXns9D0xLtSlDQ5nv+YcXZWy/PJTziTV7hFRhQB53Uuer1IN76CuCXCDMDACIR480dHJHnUtnBQFEsR7Kp16PY/0BAN7tiMrpl3HofOB0e6a9fJvgfn3qqQk1E8To3NuE6E/XsIbvISGiizv+XM9u4bUsqIskf8LMmrUHLhZA8H4nAzIAttC4sevchvwwWqsBygMRqXDuqu9hG8X46rxmb75fnQovzN6AvYeHI0i4qpAUinQkzdbrULjdIJ+bjszHqIEw8SWW+j45mGQOtC8jcHWVaD197Rv2fTD655YgraILYcMofk6sPBb41kECXpYMKh1saLqMBRwvQHQbFbw1Dd+NWOPj3/qI=
