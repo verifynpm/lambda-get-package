@@ -11,6 +11,7 @@ install:
 test:
   - npm t
 script:
+  - npm run tag-build
   - npm run zip
 deploy:
   on:
