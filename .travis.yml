@@ -10,6 +10,8 @@ test:
 script:
   - npm run zip
 deploy:
+  on:
+    branch: deploy
   provider: lambda
   function_name: verifynpm-get-package
   region: us-east-2
