@@ -10,6 +10,7 @@
     "copy-deps": "cp package*.json ./compiled && \\\ncd compiled && \\\nnpm ci --production && \\\nrm package*.json",
     "lint": "tslint -c tslint.json -e 'node_modules/**/*' '**/*.ts'",
     "start": "node ./compiled/index.js",
+    "tag-build": "echo \"{ \\\"tag\\\": \\\"b:$TRAVIS_BUILD_NUMBER;g:$TRAVIS_COMMIT;t:$TRAVIS_TAG\\\" }\" > ./src/build-info.json",
     "test": "NODE_ENV=test nyc mocha --require source-map-support/register --require ts-node/register --recursive './src/**/*.tests.ts'",
     "prezip": "npm run build -- --sourceMap false -d false && \\\nnpm run copy-deps",
     "zip": "cd compiled && \\\nzip -r bundle.zip * -x *.tests.js"
