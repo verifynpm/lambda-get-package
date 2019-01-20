@@ -25,10 +25,7 @@ export const handler: ProxyHandler = async event => {
         statusCode: 500,
         headers: { 'x-build-tag': buildInfo.tag },
         body: JSON.stringify({
-          errors: createError(
-            ErrorCode.INTERNAL_ERROR,
-            `${err && err.message ? err.message : err}`,
-          ),
+          errors: createError(ErrorCode.INTERNAL_ERROR, `It's really bad`),
         }),
       };
     }
@@ -89,31 +86,37 @@ async function getPackage(
   name: string,
   version: string,
 ): Promise<PackageVersion> {
-  const ddb = new DynamoDB({ region: 'us-east-2', apiVersion: '2012-10-18' });
-
   return new Promise((resolve, reject) => {
-    const params: DynamoDB.GetItemInput = {
-      TableName: 'packages',
-      Key: {
-        name: { S: name },
-        version: { S: version },
-      },
-    };
+    try {
+      const ddb = new DynamoDB({
+        region: 'us-east-2',
+        apiVersion: '2012-10-18',
+      });
+      const params: DynamoDB.GetItemInput = {
+        TableName: 'packages',
+        Key: {
+          name: { S: name },
+          version: { S: version },
+        },
+      };
 
-    ddb.getItem(params, (err, data) => {
-      if (err) reject(err);
+      ddb.getItem(params, (err, data) => {
+        if (err) reject(err);
 
-      if (data.Item) {
-        resolve({
-          name: data.Item.name.S as string,
-          version: data.Item.version.S as string,
-          algo: data.Item.algo.S as string,
-          status: data.Item.status.S as Status,
-        });
-      } else {
-        resolve(null);
-      }
-    });
+        if (data.Item) {
+          resolve({
+            name: data.Item.name.S as string,
+            version: data.Item.version.S as string,
+            algo: data.Item.algo.S as string,
+            status: data.Item.status.S as Status,
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
