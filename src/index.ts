@@ -18,28 +18,17 @@ export const handler: ProxyHandler = async event => {
       event.pathParameters.packageVersion,
     );
 
-    try {
-      const x = await getPackage(name, version);
+    // Try to return package from database based on verbatum package@version
+    const existingPackage = await getPackage(name, version);
+    if (existingPackage) {
       return {
         statusCode: 200,
         headers: { 'x-build-tag': buildInfo.tag },
-        body: JSON.stringify(x),
-      };
-    } catch (err) {
-      return {
-        statusCode: 500,
-        headers: { 'x-build-tag': buildInfo.tag },
-        body: JSON.stringify({
-          errors: [
-            createError(
-              ErrorCode.INTERNAL_ERROR,
-              `${err && err.message ? err.message : err}`,
-            ),
-          ],
-        }),
+        body: JSON.stringify(existingPackage),
       };
     }
 
+    // Resolve name and version from registry
     const {
       name: metaName,
       version: metaVersion,
@@ -69,12 +58,19 @@ export const handler: ProxyHandler = async event => {
       };
       statusCode = 404;
     } else {
-      result = {
-        name,
-        version: metaVersion,
-        algo: 'none',
-        status: Status.unknown,
-      };
+      // Try to return package from database based on resolved package@version
+      result = await getPackage(name, version);
+
+      if (!result) {
+        result = {
+          name,
+          version: metaVersion,
+          algo: 'none',
+          status: Status.unknown,
+        };
+
+        await setPackage(result);
+      }
     }
 
     const response: APIGatewayProxyResult = {
@@ -84,10 +80,17 @@ export const handler: ProxyHandler = async event => {
     };
     return response;
   } catch (err) {
-    return <APIGatewayProxyResult>{
-      headers: { 'x-build-tag': buildInfo.tag },
+    return {
       statusCode: 500,
-      body: JSON.stringify(createError(ErrorCode.INTERNAL_ERROR, err.message)),
+      headers: { 'x-build-tag': buildInfo.tag },
+      body: JSON.stringify({
+        errors: [
+          createError(
+            ErrorCode.INTERNAL_ERROR,
+            `${err && err.message ? err.message : err}`,
+          ),
+        ],
+      }),
     };
   }
 };
@@ -134,23 +137,29 @@ async function getPackage(
   });
 }
 
-// async function setPackage(data: PackageVersion): Promise<void> {
-//   const ddb = new DynamoDB({ region: 'us-east-2', apiVersion: '2012-10-18' });
+async function setPackage(data: PackageVersion): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      const ddb = new AWS.DynamoDB({
+        region: 'us-east-2',
+        apiVersion: '2012-10-18',
+      });
 
-//   const params: DynamoDB.PutItemInput = {
-//     TableName: 'packages',
-//     Item: {
-//       name: { S: data.name },
-//       version: { S: data.version },
-//       algo: { S: data.algo },
-//       status: { S: data.status },
-//     },
-//   };
-
-//   return new Promise((resolve, reject) => {
-//     ddb.putItem(params, err => (!!err ? reject(err) : resolve()));
-//   });
-// }
+      const params: AWS.DynamoDB.PutItemInput = {
+        TableName: 'packages',
+        Item: {
+          name: { S: data.name },
+          version: { S: data.version },
+          algo: { S: data.algo },
+          status: { S: data.status },
+        },
+      };
+      ddb.putItem(params, err => (!!err ? reject(err) : resolve()));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
 
 function parsePackageParam(
   packageVersion: string,
