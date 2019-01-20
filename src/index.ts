@@ -26,6 +26,7 @@ export const handler: ProxyHandler = async event => {
     } = await getHashes(name, version);
 
     let result: PackageVersion | { errors: JsonApiError[] } = null;
+    let statusCode = 200;
 
     if (!metaName) {
       result = {
@@ -33,6 +34,7 @@ export const handler: ProxyHandler = async event => {
           createError(ErrorCode.NOT_FOUND, `Package ${name} does not exist`),
         ],
       };
+      statusCode = 404;
     } else if (!metaVersion) {
       result = {
         errors: [
@@ -42,6 +44,7 @@ export const handler: ProxyHandler = async event => {
           ),
         ],
       };
+      statusCode = 404;
     } else {
       result = {
         name,
@@ -53,7 +56,7 @@ export const handler: ProxyHandler = async event => {
 
     const response: APIGatewayProxyResult = {
       headers: { 'x-build-tag': buildInfo.tag },
-      statusCode: 200,
+      statusCode,
       body: JSON.stringify(result),
     };
     return response;
