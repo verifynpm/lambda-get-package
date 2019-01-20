@@ -1,6 +1,7 @@
 import { ProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import axios from 'axios';
 import * as semver from 'semver';
+import { DynamoDB, config } from 'aws-sdk';
 
 import * as buildInfo from './build-info.json';
 import {
@@ -16,6 +17,18 @@ export const handler: ProxyHandler = async event => {
     const { name, version } = parsePackageParam(
       event.pathParameters.packageVersion,
     );
+
+    try {
+      const x = await getPackage(name, version);
+    } catch (err) {
+      return {
+        statusCode: 500,
+        headers: { 'x-build-tag': buildInfo.tag },
+        body: JSON.stringify({
+          errors: createError(ErrorCode.INTERNAL_ERROR, JSON.stringify(err)),
+        }),
+      };
+    }
 
     const {
       name: metaName,
@@ -68,6 +81,54 @@ export const handler: ProxyHandler = async event => {
     };
   }
 };
+
+async function getPackage(
+  name: string,
+  version: string,
+): Promise<PackageVersion> {
+  config.update({ region: 'us-east-2' });
+  const ddb = new DynamoDB({ apiVersion: '2012-10-18' });
+
+  const params: DynamoDB.GetItemInput = {
+    TableName: 'packages',
+    Key: {
+      name: { S: name },
+      version: { S: version },
+    },
+  };
+
+  return new Promise((resolve, reject) => {
+    ddb.getItem(params, (err, data) => {
+      if (err) reject(err);
+
+      resolve({
+        name: data.Item.name.S as string,
+        version: data.Item.version.S as string,
+        algo: data.Item.algo.S as string,
+        status: data.Item.status.S as Status,
+      });
+    });
+  });
+}
+
+async function setPackage(data: PackageVersion): Promise<void> {
+  config.update({ region: 'us-east-2' });
+  const ddb = new DynamoDB({ apiVersion: '2012-10-18' });
+
+  const params: DynamoDB.PutItemInput = {
+    TableName: 'packages',
+    Item: {
+      name: { S: data.name },
+      version: { S: data.version },
+      algo: { S: data.algo },
+      status: { S: data.status },
+    },
+  };
+
+  return new Promise((resolve, reject) => {
+    ddb.putItem(params, (err, data) => (!!err ? reject(err) : resolve()));
+  });
+}
 
 function parsePackageParam(
   packageVersion: string,
