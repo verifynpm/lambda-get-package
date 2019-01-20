@@ -1,7 +1,7 @@
 import { ProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import axios from 'axios';
 import * as semver from 'semver';
-import { DynamoDB, config } from 'aws-sdk';
+import { DynamoDB } from 'aws-sdk';
 
 import * as buildInfo from './build-info.json';
 import {
@@ -86,34 +86,36 @@ async function getPackage(
   name: string,
   version: string,
 ): Promise<PackageVersion> {
-  config.update({ region: 'us-east-2' });
-  const ddb = new DynamoDB({ apiVersion: '2012-10-18' });
-
-  const params: DynamoDB.GetItemInput = {
-    TableName: 'packages',
-    Key: {
-      name: { S: name },
-      version: { S: version },
-    },
-  };
+  const ddb = new DynamoDB({ region: 'us-east-2', apiVersion: '2012-10-18' });
 
   return new Promise((resolve, reject) => {
+    const params: DynamoDB.GetItemInput = {
+      TableName: 'packages',
+      Key: {
+        name: { S: name },
+        version: { S: version },
+      },
+    };
+
     ddb.getItem(params, (err, data) => {
       if (err) reject(err);
 
-      resolve({
-        name: data.Item.name.S as string,
-        version: data.Item.version.S as string,
-        algo: data.Item.algo.S as string,
-        status: data.Item.status.S as Status,
-      });
+      if (data.Item) {
+        resolve({
+          name: data.Item.name.S as string,
+          version: data.Item.version.S as string,
+          algo: data.Item.algo.S as string,
+          status: data.Item.status.S as Status,
+        });
+      } else {
+        resolve(null);
+      }
     });
   });
 }
 
 async function setPackage(data: PackageVersion): Promise<void> {
-  config.update({ region: 'us-east-2' });
-  const ddb = new DynamoDB({ apiVersion: '2012-10-18' });
+  const ddb = new DynamoDB({ region: 'us-east-2', apiVersion: '2012-10-18' });
 
   const params: DynamoDB.PutItemInput = {
     TableName: 'packages',
