@@ -126,7 +126,7 @@ async function setPackage(data: PackageVersion): Promise<void> {
   };
 
   return new Promise((resolve, reject) => {
-    ddb.putItem(params, (err, data) => (!!err ? reject(err) : resolve()));
+    ddb.putItem(params, err => (!!err ? reject(err) : resolve()));
   });
 }
 
