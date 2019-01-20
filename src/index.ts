@@ -102,7 +102,7 @@ export async function getHashes(
     }
 
     const vv =
-      version || (res.data['dist-tags'] && res.data['dist-tags'].latest);
+      (res.data['dist-tags'] && res.data['dist-tags'][version]) || version;
 
     const v = semver.maxSatisfying(Object.keys(res.data.versions), vv);
 
