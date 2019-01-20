@@ -30,7 +30,12 @@ export const handler: ProxyHandler = async event => {
         statusCode: 500,
         headers: { 'x-build-tag': buildInfo.tag },
         body: JSON.stringify({
-          errors: createError(ErrorCode.INTERNAL_ERROR, `It's really bad`),
+          errors: [
+            createError(
+              ErrorCode.INTERNAL_ERROR,
+              `${err && err.message ? err.message : err}`,
+            ),
+          ],
         }),
       };
     }
