@@ -18,17 +18,22 @@ export const handler: ProxyHandler = async event => {
       event.pathParameters.packageVersion,
     );
 
-    // try {
-    //   const x = await getPackage(name, version);
-    // } catch (err) {
-    //   return {
-    //     statusCode: 500,
-    //     headers: { 'x-build-tag': buildInfo.tag },
-    //     body: JSON.stringify({
-    //       errors: createError(ErrorCode.INTERNAL_ERROR, `It's really bad`),
-    //     }),
-    //   };
-    // }
+    try {
+      const x = await getPackage(name, version);
+      return {
+        statusCode: 200,
+        headers: { 'x-build-tag': buildInfo.tag },
+        body: JSON.stringify(x),
+      };
+    } catch (err) {
+      return {
+        statusCode: 500,
+        headers: { 'x-build-tag': buildInfo.tag },
+        body: JSON.stringify({
+          errors: createError(ErrorCode.INTERNAL_ERROR, `It's really bad`),
+        }),
+      };
+    }
 
     const {
       name: metaName,
