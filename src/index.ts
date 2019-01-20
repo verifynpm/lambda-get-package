@@ -1,7 +1,7 @@
 import { ProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import axios from 'axios';
 import * as semver from 'semver';
-import { DynamoDB } from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 
 import * as buildInfo from './build-info.json';
 import {
@@ -18,17 +18,17 @@ export const handler: ProxyHandler = async event => {
       event.pathParameters.packageVersion,
     );
 
-    try {
-      const x = await getPackage(name, version);
-    } catch (err) {
-      return {
-        statusCode: 500,
-        headers: { 'x-build-tag': buildInfo.tag },
-        body: JSON.stringify({
-          errors: createError(ErrorCode.INTERNAL_ERROR, `It's really bad`),
-        }),
-      };
-    }
+    // try {
+    //   const x = await getPackage(name, version);
+    // } catch (err) {
+    //   return {
+    //     statusCode: 500,
+    //     headers: { 'x-build-tag': buildInfo.tag },
+    //     body: JSON.stringify({
+    //       errors: createError(ErrorCode.INTERNAL_ERROR, `It's really bad`),
+    //     }),
+    //   };
+    // }
 
     const {
       name: metaName,
@@ -88,11 +88,11 @@ async function getPackage(
 ): Promise<PackageVersion> {
   return new Promise((resolve, reject) => {
     try {
-      const ddb = new DynamoDB({
+      const ddb = new AWS.DynamoDB({
         region: 'us-east-2',
         apiVersion: '2012-10-18',
       });
-      const params: DynamoDB.GetItemInput = {
+      const params: AWS.DynamoDB.GetItemInput = {
         TableName: 'packages',
         Key: {
           name: { S: name },
@@ -101,17 +101,21 @@ async function getPackage(
       };
 
       ddb.getItem(params, (err, data) => {
-        if (err) reject(err);
+        try {
+          if (err) reject(err);
 
-        if (data.Item) {
-          resolve({
-            name: data.Item.name.S as string,
-            version: data.Item.version.S as string,
-            algo: data.Item.algo.S as string,
-            status: data.Item.status.S as Status,
-          });
-        } else {
-          resolve(null);
+          if (data.Item) {
+            resolve({
+              name: data.Item.name.S as string,
+              version: data.Item.version.S as string,
+              algo: data.Item.algo.S as string,
+              status: data.Item.status.S as Status,
+            });
+          } else {
+            resolve(null);
+          }
+        } catch (error) {
+          reject(error);
         }
       });
     } catch (err) {
@@ -120,23 +124,23 @@ async function getPackage(
   });
 }
 
-async function setPackage(data: PackageVersion): Promise<void> {
-  const ddb = new DynamoDB({ region: 'us-east-2', apiVersion: '2012-10-18' });
+// async function setPackage(data: PackageVersion): Promise<void> {
+//   const ddb = new DynamoDB({ region: 'us-east-2', apiVersion: '2012-10-18' });
 
-  const params: DynamoDB.PutItemInput = {
-    TableName: 'packages',
-    Item: {
-      name: { S: data.name },
-      version: { S: data.version },
-      algo: { S: data.algo },
-      status: { S: data.status },
-    },
-  };
+//   const params: DynamoDB.PutItemInput = {
+//     TableName: 'packages',
+//     Item: {
+//       name: { S: data.name },
+//       version: { S: data.version },
+//       algo: { S: data.algo },
+//       status: { S: data.status },
+//     },
+//   };
 
-  return new Promise((resolve, reject) => {
-    ddb.putItem(params, err => (!!err ? reject(err) : resolve()));
-  });
-}
+//   return new Promise((resolve, reject) => {
+//     ddb.putItem(params, err => (!!err ? reject(err) : resolve()));
+//   });
+// }
 
 function parsePackageParam(
   packageVersion: string,
