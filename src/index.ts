@@ -45,7 +45,7 @@ export const handler: ProxyHandler = async event => {
     } else {
       result = {
         name,
-        version,
+        version: metaVersion,
         algo: 'none',
         status: Status.unknown,
       };
