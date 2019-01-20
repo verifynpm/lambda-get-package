@@ -1,5 +1,6 @@
 import { ProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import axios from 'axios';
+import * as semver from 'semver';
 
 import * as buildInfo from './build-info.json';
 import {
@@ -8,7 +9,7 @@ import {
   PackageVersion,
   Status,
   JsonApiError,
-} from './types.js';
+} from './types';
 
 export const handler: ProxyHandler = async event => {
   try {
@@ -76,7 +77,7 @@ function parsePackageParam(
   };
 }
 
-async function getHashes(
+export async function getHashes(
   name: string,
   version: string,
 ): Promise<{
@@ -89,7 +90,7 @@ async function getHashes(
   try {
     let res: any;
     try {
-      await axios.get(`https://registry.npmjs.com/${name}`);
+      res = await axios.get(`https://registry.npmjs.com/${name}`);
     } catch {
       return {
         name: undefined,
@@ -100,8 +101,10 @@ async function getHashes(
       };
     }
 
-    const v =
+    const vv =
       version || (res.data['dist-tags'] && res.data['dist-tags'].latest);
+
+    const v = semver.maxSatisfying(Object.keys(res.data.versions), vv);
 
     const meta = res.data.versions && res.data.versions[v];
 
