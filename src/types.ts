@@ -17,15 +17,14 @@ export type PackageVersion = {
   name: string;
   version: string;
   algo: string;
-  status: Status;
+  status:
+    | 'unknown'
+    | 'pending'
+    | 'verified'
+    | 'unverified'
+    | 'timeout'
+    | 'error';
 };
-
-export enum Status {
-  'unknown' = 'unknown',
-  'pending' = 'pending',
-  'verified' = 'verified',
-  'unverified' = 'unverified',
-}
 
 export function createError(code: ErrorCode, detail: string): JsonApiError {
   return {

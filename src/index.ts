@@ -4,13 +4,7 @@ import * as semver from 'semver';
 import * as AWS from 'aws-sdk';
 
 import * as buildInfo from './build-info.json';
-import {
-  createError,
-  ErrorCode,
-  PackageVersion,
-  Status,
-  JsonApiError,
-} from './types';
+import { createError, ErrorCode, PackageVersion, JsonApiError } from './types';
 
 export const handler: ProxyHandler = async event => {
   try {
@@ -66,7 +60,7 @@ export const handler: ProxyHandler = async event => {
           name,
           version: metaVersion,
           algo: 'none',
-          status: Status.unknown,
+          status: 'unknown',
         };
 
         await setPackage(result);
@@ -122,7 +116,7 @@ async function getPackage(
               name: data.Item.name.S as string,
               version: data.Item.version.S as string,
               algo: data.Item.algo.S as string,
-              status: data.Item.status.S as Status,
+              status: data.Item.status.S as PackageVersion['status'],
             });
           } else {
             resolve(null);
