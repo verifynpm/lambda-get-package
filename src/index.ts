@@ -53,7 +53,7 @@ export const handler: ProxyHandler = async event => {
       statusCode = 404;
     } else {
       // Try to return package from database based on resolved package@version
-      result = await getPackage(name, version);
+      result = await getPackage(name, metaVersion);
 
       if (!result) {
         result = {
