@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListExistingRolesAndPolicies",
+      "Effect": "Allow",
+      "Action": ["iam:ListRolePolicies", "iam:ListRoles"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CreateAndListFunctions",
+      "Effect": "Allow",
+      "Action": ["lambda:CreateFunction", "lambda:ListFunctions"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DeployCode",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:lambda:us-east-2:541605000355:function:verifynpm-get-package"
+      ]
+    },
+    {
+      "Sid": "SetRole",
+      "Effect": "Allow",
+      "Action": ["iam:PassRole"],
+      "Resource": "arn:aws:iam::541605000355:role/lambda_code_deploy"
+    },
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "dynamodb:*",
+          "Resource": "arn:aws:dynamodb:us-east-2:541605000355:table/packages"
+        }
+      ]
+    }
+  ]
+}
